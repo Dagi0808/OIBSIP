@@ -78,7 +78,11 @@ def extract_info(text: str):
         match = re.search(r"in\s+(\d+)\s+minutes?", query, flags=re.IGNORECASE)
         if match:
             info["minutes"] = int(match.group(1))
-        if "email" in query.lower():
+        # Extract task after "to" keyword
+        task_match = re.search(r"\bto\s+(.+)$", query, flags=re.IGNORECASE)
+        if task_match:
+            info["task"] = task_match.group(1).strip()
+        elif "email" in query.lower():
             info["task"] = "check my email"
 
     if intent == "search":

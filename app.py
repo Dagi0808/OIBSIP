@@ -129,6 +129,7 @@ HTML = """
       <button type="button" class="chip" data-command="what date is it">date</button>
       <button type="button" class="chip" data-command="what is the weather in Addis Ababa">weather</button>
       <button type="button" class="chip" data-command="search for Python tutorials">search</button>
+      <button type="button" class="chip" data-command="remind me in 1 minutes to drink water">reminder</button>
       <button type="button" class="chip" data-command="open my notes">open</button>
     </div>
 
