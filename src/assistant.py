@@ -61,14 +61,41 @@ def get_response(text: str, speak_fn=None, history: list | None = None) -> str:
         return TIME_TEMPLATES.get(lang, TIME_TEMPLATES["en"]).format(time=now)
 
     if intent == "date":
-        now = datetime.datetime.now().strftime("%A, %B %d, %Y")
-        return DATE_TEMPLATES.get(lang, DATE_TEMPLATES["en"]).format(date=now)
+        now = datetime.datetime.now()
+        if lang == "am":
+            # Amharic month names (Gregorian calendar in Amharic)
+            am_months = ["", "ጃንዋሪ", "ፌብሩዋሪ", "ማርች", "ኤፕሪል", "ሜይ", "ጁን",
+                         "ጁላይ", "ኦገስት", "ሴፕቴምበር", "ኦክቶበር", "ኖቬምበር", "ዲሴምበር"]
+            am_days = ["ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "አርብ", "ቅዳሜ", "እሁድ"]
+            day_name = am_days[now.weekday()]
+            month_name = am_months[now.month]
+            date_str = f"{day_name}፣ {month_name} {now.day}፣ {now.year}"
+        else:
+            date_str = now.strftime("%A, %B %d, %Y")
+        return DATE_TEMPLATES.get(lang, DATE_TEMPLATES["en"]).format(date=date_str)
 
     if intent == "weather":
         city = info.get("city") or "Addis Ababa"
-        # get_weather_response returns English; wrap for Amharic
-        result = get_weather_response(city)
-        return result
+        from src.weather import get_weather as _get_weather
+        import os, requests as _req
+        api_key = os.getenv("OPENWEATHER_API_KEY")
+        if lang == "am" and api_key:
+            # Build Amharic weather response directly
+            try:
+                params = {"q": city, "appid": api_key, "units": "metric"}
+                resp = _req.get("https://api.openweathermap.org/data/2.5/weather",
+                                params=params, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    desc = data.get("weather", [{}])[0].get("description", "ጸዳ")
+                    temp = data.get("main", {}).get("temp", "")
+                    from src.locales import WEATHER_TEMPLATES
+                    return WEATHER_TEMPLATES["am"].format(
+                        city=city, description=desc, temp=temp
+                    )
+            except Exception:
+                pass
+        return get_weather_response(city)
 
     if intent == "reminder":
         minutes = info.get("minutes", 5)
@@ -92,6 +119,13 @@ def get_response(text: str, speak_fn=None, history: list | None = None) -> str:
         return get_search_response(search_query)
 
     if intent == "knowledge":
+        # Strip Amharic knowledge prefixes before querying Wikipedia
+        if lang == "am":
+            import re as _re
+            clean = query
+            for prefix in ["ማን ነው", "ምንድን ነው", "ምን ነው", "ንገረኝ", "አብራራ"]:
+                clean = _re.sub(rf"^{prefix}\s*", "", clean, flags=_re.IGNORECASE).strip()
+            return get_knowledge(clean)
         return get_knowledge(query)
 
     return get_response_text("unknown", lang)

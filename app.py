@@ -681,25 +681,25 @@ HTML = """
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">🤖</div>
-      <span class="logo-text">Voice Assistant</span>
+      <span class="logo-text" id="ui-title">Voice Assistant</span>
     </div>
 
     <form method="POST" style="margin:0">
       <input type="hidden" name="new_chat" value="1">
-      <button type="submit" class="new-chat-btn">
+      <button type="submit" class="new-chat-btn" id="ui-new-chat">
         <span>✏️</span> New chat
       </button>
     </form>
 
-    <div class="sidebar-section">Suggestions</div>
-    <div class="sidebar-item" onclick="fillInput('who is Albert Einstein')">🧠 Who is Einstein?</div>
-    <div class="sidebar-item" onclick="fillInput('what is the weather in Addis Ababa')">🌤️ Weather check</div>
-    <div class="sidebar-item" onclick="fillInput('remind me in 5 minutes to drink water')">⏰ Set a reminder</div>
-    <div class="sidebar-item" onclick="fillInput('search for Python tutorials')">🔍 Web search</div>
+    <div class="sidebar-section" id="ui-suggestions-label">Suggestions</div>
+    <div class="sidebar-item" id="sb-knowledge" onclick="fillInput(getCmd('knowledge'))">🧠 <span id="ui-sb-knowledge">Who is Einstein?</span></div>
+    <div class="sidebar-item" id="sb-weather"   onclick="fillInput(getCmd('weather'))">🌤️ <span id="ui-sb-weather">Weather check</span></div>
+    <div class="sidebar-item" id="sb-reminder"  onclick="fillInput(getCmd('reminder'))">⏰ <span id="ui-sb-reminder">Set a reminder</span></div>
+    <div class="sidebar-item" id="sb-search"    onclick="fillInput(getCmd('search'))">🔍 <span id="ui-sb-search">Web search</span></div>
 
     <div class="sidebar-bottom">
-      <div class="sidebar-item">⚙️ Settings</div>
-      <div class="sidebar-item">❓ Help</div>
+      <div class="sidebar-item">⚙️ <span id="ui-settings">Settings</span></div>
+      <div class="sidebar-item">❓ <span id="ui-help">Help</span></div>
     </div>
   </aside>
 
@@ -708,12 +708,12 @@ HTML = """
 
     <!-- Header -->
     <div class="chat-header">
-      <span class="chat-title">Voice Assistant</span>
+      <span class="chat-title" id="ui-header-title">Voice Assistant</span>
       <div class="header-actions">
         <select class="lang-select" id="lang-select" title="Speech language" onchange="saveLang(this.value)">
           <option value="en-US">🇺🇸 English (US)</option>
           <option value="en-GB">🇬🇧 English (UK)</option>
-          <option value="am-ET">🇪🇹 Amharic</option>
+          <option value="am-ET">🇪🇹 አማርኛ (Amharic)</option>
           <option value="fr-FR">🇫🇷 French</option>
           <option value="ar-SA">🇸🇦 Arabic</option>
           <option value="es-ES">🇪🇸 Spanish</option>
@@ -731,24 +731,24 @@ HTML = """
       {% if not history %}
       <div class="welcome" id="welcome-screen">
         <div class="welcome-icon">🤖</div>
-        <h2>How can I help you?</h2>
-        <p>Ask me about the weather, set a reminder, search the web, or learn something new.</p>
+        <h2 id="ui-welcome-title">How can I help you?</h2>
+        <p id="ui-welcome-sub">Ask me about the weather, set a reminder, search the web, or learn something new.</p>
         <div class="suggestions">
-          <div class="suggestion-card" onclick="fillInput('what is the weather in Addis Ababa')">
-            <div class="suggestion-title">🌤️ Weather</div>
-            <div class="suggestion-sub">What's the weather in Addis Ababa?</div>
+          <div class="suggestion-card" onclick="fillInput(getCmd('weather'))">
+            <div class="suggestion-title">🌤️ <span id="ui-card-weather-title">Weather</span></div>
+            <div class="suggestion-sub" id="ui-card-weather-sub">What's the weather in Addis Ababa?</div>
           </div>
-          <div class="suggestion-card" onclick="fillInput('remind me in 5 minutes to drink water')">
-            <div class="suggestion-title">⏰ Reminder</div>
-            <div class="suggestion-sub">Remind me in 5 minutes to drink water</div>
+          <div class="suggestion-card" onclick="fillInput(getCmd('reminder'))">
+            <div class="suggestion-title">⏰ <span id="ui-card-reminder-title">Reminder</span></div>
+            <div class="suggestion-sub" id="ui-card-reminder-sub">Remind me in 5 minutes to drink water</div>
           </div>
-          <div class="suggestion-card" onclick="fillInput('who is Albert Einstein')">
-            <div class="suggestion-title">🧠 Knowledge</div>
-            <div class="suggestion-sub">Who is Albert Einstein?</div>
+          <div class="suggestion-card" onclick="fillInput(getCmd('knowledge'))">
+            <div class="suggestion-title">🧠 <span id="ui-card-knowledge-title">Knowledge</span></div>
+            <div class="suggestion-sub" id="ui-card-knowledge-sub">Who is Albert Einstein?</div>
           </div>
-          <div class="suggestion-card" onclick="fillInput('search for Python tutorials')">
-            <div class="suggestion-title">🔍 Search</div>
-            <div class="suggestion-sub">Search for Python tutorials</div>
+          <div class="suggestion-card" onclick="fillInput(getCmd('search'))">
+            <div class="suggestion-title">🔍 <span id="ui-card-search-title">Search</span></div>
+            <div class="suggestion-sub" id="ui-card-search-sub">Search for Python tutorials</div>
           </div>
         </div>
       </div>
@@ -769,14 +769,14 @@ HTML = """
 
     <!-- Quick chips -->
     <div class="chips-bar">
-      <button class="chip" onclick="fillInput('hello')">👋 hello</button>
-      <button class="chip" onclick="fillInput('what time is it')">🕐 time</button>
-      <button class="chip" onclick="fillInput('what date is it')">📅 date</button>
-      <button class="chip" onclick="fillInput('what is the weather in Addis Ababa')">🌤️ weather</button>
-      <button class="chip" onclick="fillInput('search for Python tutorials')">🔍 search</button>
-      <button class="chip" onclick="fillInput('remind me in 1 minutes to drink water')">⏰ reminder</button>
-      <button class="chip" onclick="fillInput('who is Albert Einstein')">🧠 knowledge</button>
-      <button class="chip" onclick="fillInput('open my notes')">📂 open</button>
+      <button class="chip" id="chip-hello"     onclick="fillInput(getCmd('hello'))">👋 <span class="chip-label">hello</span></button>
+      <button class="chip" id="chip-time"      onclick="fillInput(getCmd('time'))">🕐 <span class="chip-label">time</span></button>
+      <button class="chip" id="chip-date"      onclick="fillInput(getCmd('date'))">📅 <span class="chip-label">date</span></button>
+      <button class="chip" id="chip-weather"   onclick="fillInput(getCmd('weather'))">🌤️ <span class="chip-label">weather</span></button>
+      <button class="chip" id="chip-search"    onclick="fillInput(getCmd('search'))">🔍 <span class="chip-label">search</span></button>
+      <button class="chip" id="chip-reminder"  onclick="fillInput(getCmd('reminder'))">⏰ <span class="chip-label">reminder</span></button>
+      <button class="chip" id="chip-knowledge" onclick="fillInput(getCmd('knowledge'))">🧠 <span class="chip-label">knowledge</span></button>
+      <button class="chip" id="chip-open"      onclick="fillInput(getCmd('open'))">📂 <span class="chip-label">open</span></button>
     </div>
 
     <!-- Input -->
@@ -802,7 +802,134 @@ HTML = """
     const langSelect = document.getElementById('lang-select');
     let currentLang = localStorage.getItem('va-lang') || 'en-US';
     langSelect.value = currentLang;
-    function saveLang(v) { currentLang = v; localStorage.setItem('va-lang', v); }
+
+    // ── UI strings per language ──
+    const UI = {
+      'en': {
+        title: 'Voice Assistant', headerTitle: 'Voice Assistant',
+        newChat: '✏️ New chat', suggestionsLabel: 'Suggestions',
+        sbKnowledge: 'Who is Einstein?', sbWeather: 'Weather check',
+        sbReminder: 'Set a reminder', sbSearch: 'Web search',
+        settings: 'Settings', help: 'Help',
+        welcomeTitle: 'How can I help you?',
+        welcomeSub: 'Ask me about the weather, set a reminder, search the web, or learn something new.',
+        cardWeatherTitle: 'Weather', cardWeatherSub: "What's the weather in Addis Ababa?",
+        cardReminderTitle: 'Reminder', cardReminderSub: 'Remind me in 5 minutes to drink water',
+        cardKnowledgeTitle: 'Knowledge', cardKnowledgeSub: 'Who is Albert Einstein?',
+        cardSearchTitle: 'Search', cardSearchSub: 'Search for Python tutorials',
+        chipHello: 'hello', chipTime: 'time', chipDate: 'date', chipWeather: 'weather',
+        chipSearch: 'search', chipReminder: 'reminder', chipKnowledge: 'knowledge', chipOpen: 'open',
+        placeholder: 'Message Voice Assistant...',
+        statusReady: 'Press Enter to send · Click 🎙️ to speak',
+      },
+      'am': {
+        title: 'የድምፅ ረዳት', headerTitle: 'የድምፅ ረዳት',
+        newChat: '✏️ አዲስ ውይይት', suggestionsLabel: 'ሐሳቦች',
+        sbKnowledge: 'አልበርት አንስታይን ማን ነው?', sbWeather: 'የአየር ሁኔታ',
+        sbReminder: 'ማስታወሻ ያቀናብሩ', sbSearch: 'ድር ፍለጋ',
+        settings: 'ቅንብሮች', help: 'እገዛ',
+        welcomeTitle: 'እንዴት ልረዳዎ?',
+        welcomeSub: 'ስለ አየር ሁኔታ ይጠይቁ፣ ማስታወሻ ያቀናብሩ፣ ድሩን ይፈልጉ፣ ወይም አዲስ ነገር ይወቁ።',
+        cardWeatherTitle: 'የአየር ሁኔታ', cardWeatherSub: 'የአዲስ አበባ የአየር ሁኔታ ምን ይመስላል?',
+        cardReminderTitle: 'ማስታወሻ', cardReminderSub: 'ከ5 ደቂቃ ውስጥ ውሃ ለመጠጣት አስታውሰኝ',
+        cardKnowledgeTitle: 'እውቀት', cardKnowledgeSub: 'ማን ነው አልበርት አንስታይን?',
+        cardSearchTitle: 'ፍለጋ', cardSearchSub: 'ፈልግ Python',
+        chipHello: 'ሰላም', chipTime: 'ሰዓት', chipDate: 'ቀን', chipWeather: 'የአየር ሁኔታ',
+        chipSearch: 'ፍለጋ', chipReminder: 'ማስታወሻ', chipKnowledge: 'እውቀት', chipOpen: 'ክፈት',
+        placeholder: 'ለረዳቱ መልዕክት ይላኩ...',
+        statusReady: 'ለመላክ Enter ይጫኑ · 🎙️ ለመናገር ጠቅ ያድርጉ',
+      },
+    };
+
+    // ── Command strings per language ──
+    const CMDS = {
+      'en': {
+        hello: 'hello', time: 'what time is it', date: 'what date is it',
+        weather: 'what is the weather in Addis Ababa',
+        search: 'search for Python tutorials',
+        reminder: 'remind me in 1 minutes to drink water',
+        knowledge: 'who is Albert Einstein', open: 'open my notes',
+      },
+      'am': {
+        hello: 'ሰላም', time: 'ሰዓቱ ስንት ነው', date: 'ቀኑ ስንት ነው',
+        weather: 'የአዲስ አበባ የአየር ሁኔታ',
+        search: 'ፈልግ Python',
+        reminder: 'አስታውሰኝ ከ1 ደቂቃ ለውሃ ጠጣ',
+        knowledge: 'ማን ነው አልበርት አንስታይን', open: 'ክፈት ማስታወሻዎቼን',
+      },
+    };
+
+    function getLangBase(lang) {
+      return lang.startsWith('am') ? 'am' : 'en';
+    }
+
+    function getCmd(key) {
+      return (CMDS[getLangBase(currentLang)] || CMDS['en'])[key] || '';
+    }
+
+    function applyUILang(lang) {
+      const base = getLangBase(lang);
+      const s = UI[base] || UI['en'];
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      const setInner = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+
+      set('ui-title', s.title);
+      set('ui-header-title', s.headerTitle);
+      const nc = document.getElementById('ui-new-chat');
+      if (nc) nc.innerHTML = s.newChat;
+      set('ui-suggestions-label', s.suggestionsLabel);
+      set('ui-sb-knowledge', s.sbKnowledge);
+      set('ui-sb-weather', s.sbWeather);
+      set('ui-sb-reminder', s.sbReminder);
+      set('ui-sb-search', s.sbSearch);
+      set('ui-settings', s.settings);
+      set('ui-help', s.help);
+      set('ui-welcome-title', s.welcomeTitle);
+      set('ui-welcome-sub', s.welcomeSub);
+      set('ui-card-weather-title', s.cardWeatherTitle);
+      set('ui-card-weather-sub', s.cardWeatherSub);
+      set('ui-card-reminder-title', s.cardReminderTitle);
+      set('ui-card-reminder-sub', s.cardReminderSub);
+      set('ui-card-knowledge-title', s.cardKnowledgeTitle);
+      set('ui-card-knowledge-sub', s.cardKnowledgeSub);
+      set('ui-card-search-title', s.cardSearchTitle);
+      set('ui-card-search-sub', s.cardSearchSub);
+
+      // Chips
+      const chips = {
+        'chip-hello': s.chipHello, 'chip-time': s.chipTime,
+        'chip-date': s.chipDate, 'chip-weather': s.chipWeather,
+        'chip-search': s.chipSearch, 'chip-reminder': s.chipReminder,
+        'chip-knowledge': s.chipKnowledge, 'chip-open': s.chipOpen,
+      };
+      Object.entries(chips).forEach(([id, label]) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const icon = el.textContent.trim().split(' ')[0];
+          const span = el.querySelector('.chip-label');
+          if (span) span.textContent = label;
+        }
+      });
+
+      // Placeholder and status
+      const ta = document.getElementById('command');
+      if (ta) ta.placeholder = s.placeholder;
+      const st = document.getElementById('status-text');
+      if (st) st.textContent = s.statusReady;
+
+      // Page title
+      document.title = s.title;
+    }
+
+    function saveLang(v) {
+      currentLang = v;
+      localStorage.setItem('va-lang', v);
+      applyUILang(v);
+    }
+
+    // Apply on load
+    applyUILang(currentLang);
 
     // ── Theme toggle ──
     const root = document.documentElement;

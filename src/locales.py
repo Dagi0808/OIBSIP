@@ -131,8 +131,10 @@ def extract_info(text: str, lang: str = "en") -> dict:
     info: dict = {"city": "", "task": "", "minutes": 5, "query": query}
 
     if lang == "am":
-        # City: look for "የ<city>" or "ኣብ <city>" patterns
-        city_match = re.search(r"የ(\S+)\s+የአየር", query)
+        # City: "የ<city> የአየር ሁኔታ" or "የ<city>"
+        city_match = re.search(r"የ(.+?)\s+የአየር", query)
+        if not city_match:
+            city_match = re.search(r"^የ(\S+)", query)
         if city_match:
             info["city"] = city_match.group(1).strip()
 
