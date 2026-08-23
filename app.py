@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, session
+from flask import Flask, render_template_string, request, session, redirect, url_for
 
 from src.assistant import get_response
 
@@ -1027,8 +1027,8 @@ def index():
     if "history" not in session:
         session["history"] = []
 
-    show_email_modal = False
-    email_error = None
+    show_email_modal = session.pop("show_email_modal", False)
+    email_error = session.pop("email_error", None)
 
     if request.method == "POST":
 
@@ -1038,9 +1038,9 @@ def index():
             session.pop("user_email", None)
             session.pop("user_app_password", None)
             session.modified = True
-            return render_template_string(
-                HTML, history=[], show_email_modal=False, email_error=None
-            )
+            return redirect(url_for("index"))
+
+        # Email setup form
         if request.form.get("email_setup"):
             user_email = request.form.get("user_email", "").strip()
             user_pw = request.form.get("user_app_password", "").strip()
@@ -1049,57 +1049,50 @@ def index():
             result = read_inbox(user_email, user_pw)
 
             if result == "EMAIL_AUTH_FAILED":
-                show_email_modal = True
-                email_error = "auth"
+                session["show_email_modal"] = True
+                session["email_error"] = "auth"
             elif result == "EMAIL_CONNECT_FAILED":
-                show_email_modal = True
-                email_error = "connect"
+                session["show_email_modal"] = True
+                session["email_error"] = "connect"
             else:
-                # Credentials work — save in session
                 session["user_email"] = user_email
                 session["user_app_password"] = user_pw
-                history = session["history"]
+                history = session.get("history", [])
                 history.append({"role": "user", "text": "check my email", "time": now})
                 history.append({"role": "assistant", "text": result, "time": now})
                 session["history"] = history[-40:]
-                session.modified = True
 
-            return render_template_string(
-                HTML,
-                history=session.get("history", []),
-                show_email_modal=show_email_modal,
-                email_error=email_error,
-            )
+            session.modified = True
+            return redirect(url_for("index"))
 
         # Normal command
         command = request.form.get("command", "").strip()
         if command:
             now = datetime.now().strftime("%I:%M %p")
-            history = session["history"]
+            history = session.get("history", [])
             history.append({"role": "user", "text": command, "time": now})
 
             response = get_response(command)
 
-            # Email intent — check if we already have session credentials
             if response == "EMAIL_SETUP_NEEDED":
                 if session.get("user_email") and session.get("user_app_password"):
-                    response = read_inbox(
-                        session["user_email"], session["user_app_password"]
-                    )
+                    response = read_inbox(session["user_email"], session["user_app_password"])
                     if response == "EMAIL_AUTH_FAILED":
                         session.pop("user_email", None)
                         session.pop("user_app_password", None)
                         response = "Your saved email credentials expired. Please reconnect."
-                        show_email_modal = True
+                        session["show_email_modal"] = True
                     elif response == "EMAIL_CONNECT_FAILED":
                         response = "I couldn't connect to Gmail right now. Check your internet."
                 else:
-                    show_email_modal = True
+                    session["show_email_modal"] = True
                     response = "I need your Gmail credentials to check your inbox."
 
             history.append({"role": "assistant", "text": response, "time": now})
             session["history"] = history[-40:]
             session.modified = True
+
+        return redirect(url_for("index"))
 
     return render_template_string(
         HTML,
