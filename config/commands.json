@@ -1,0 +1,44 @@
+{
+  "commands": [
+    {
+      "name": "greeting",
+      "patterns": ["hello", "hi", "hey"],
+      "description": "Respond to greetings"
+    },
+    {
+      "name": "time",
+      "patterns": ["what time is it", "time"],
+      "description": "Report the current time"
+    },
+    {
+      "name": "date",
+      "patterns": ["what date is it", "date"],
+      "description": "Report the current date"
+    },
+    {
+      "name": "weather",
+      "patterns": ["weather", "forecast"],
+      "description": "Get weather information"
+    },
+    {
+      "name": "search",
+      "patterns": ["search for", "look up", "google"],
+      "description": "Search the web"
+    },
+    {
+      "name": "reminder",
+      "patterns": ["remind me", "set a reminder"],
+      "description": "Create a reminder"
+    },
+    {
+      "name": "email",
+      "patterns": ["email", "check my email"],
+      "description": "Handle email-related requests"
+    },
+    {
+      "name": "custom",
+      "patterns": ["open", "launch", "start", "run"],
+      "description": "Process custom commands"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Copy this file to .env and fill in your real values
+OPENWEATHER_API_KEY=your_openweathermap_api_key_here
+EMAIL_ADDRESS=your_email@gmail.com
+EMAIL_PASSWORD=your_gmail_app_password_here
