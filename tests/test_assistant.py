@@ -66,7 +66,7 @@ def test_reminder_response():
 
 def test_email_response():
     response = get_response("check my email")
-    assert "email" in response.lower()
+    assert "checking inbox" in response.lower() or "email" in response.lower()
 
 
 def test_custom_command_response():

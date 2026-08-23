@@ -1,6 +1,5 @@
 try:
     from src.commands import (
-        create_reminder_response,
         get_date_response,
         get_search_response,
         get_time_response,
@@ -8,9 +7,9 @@ try:
     )
     from src.email_service import check_email
     from src.intents import detect_intent, extract_info
+    from src.reminders import schedule_reminder
 except ModuleNotFoundError:
     from commands import (
-        create_reminder_response,
         get_date_response,
         get_search_response,
         get_time_response,
@@ -18,9 +17,10 @@ except ModuleNotFoundError:
     )
     from email_service import check_email
     from intents import detect_intent, extract_info
+    from reminders import schedule_reminder
 
 
-def get_response(text: str) -> str:
+def get_response(text: str, speak_fn=None) -> str:
     query = (text or "").strip()
     if not query:
         return "I didn't catch that. Please say it again."
@@ -44,7 +44,9 @@ def get_response(text: str) -> str:
     if intent == "reminder":
         minutes = info.get("minutes", 5)
         task = info.get("task") or "your task"
-        return create_reminder_response(minutes, task)
+        # Use a no-op speak function if none provided (e.g. web UI)
+        _speak = speak_fn if callable(speak_fn) else lambda t: None
+        return schedule_reminder(minutes, task, _speak, notify_email=True)
 
     if intent == "email":
         return check_email()

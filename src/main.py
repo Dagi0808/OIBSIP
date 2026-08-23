@@ -18,7 +18,7 @@ def run_assistant():
                 continue
 
             print(f"You said: {text}")
-            reply = get_response(text)
+            reply = get_response(text, speak_fn=speak)
             print(f"Assistant: {reply}")
             speak(reply)
 
