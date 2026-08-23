@@ -6,7 +6,8 @@ import re
 
 import requests
 
-WIKIPEDIA_URL = "https://en.wikipedia.org/api/rest_v1/page/summary/{topic}"
+WIKIPEDIA_SUMMARY_URL = "https://en.wikipedia.org/api/rest_v1/page/summary/{topic}"
+WIKIPEDIA_SEARCH_URL = "https://en.wikipedia.org/w/api.php"
 
 
 def get_knowledge(query: str) -> str:
@@ -15,31 +16,77 @@ def get_knowledge(query: str) -> str:
     if not topic:
         return "What would you like to know about?"
 
-    url = WIKIPEDIA_URL.format(topic=requests.utils.quote(topic))
+    # First try direct lookup
+    result = _fetch_summary(topic)
+    if result:
+        return result
 
+    # Fall back to search API to find the best matching page
+    best_title = _search_wikipedia(topic)
+    if not best_title:
+        return f"I couldn't find anything about '{topic}' on Wikipedia."
+
+    result = _fetch_summary(best_title)
+    if result:
+        return result
+
+    return f"I couldn't find anything about '{topic}' on Wikipedia."
+
+
+def _fetch_summary(topic: str) -> str | None:
+    """Fetch a Wikipedia page summary. Returns None if not found or disambiguation."""
+    url = WIKIPEDIA_SUMMARY_URL.format(topic=requests.utils.quote(topic))
     try:
-        response = requests.get(url, timeout=10, headers={"User-Agent": "VoiceAssistant/1.0"})
-
-        if response.status_code == 404:
-            return f"I couldn't find anything about '{topic}' on Wikipedia."
-
+        response = requests.get(
+            url, timeout=10, headers={"User-Agent": "VoiceAssistant/1.0"}
+        )
         if response.status_code != 200:
-            return f"I had trouble looking up '{topic}' right now."
+            return None
 
         data = response.json()
 
-        # Prefer the extract (plain text summary)
+        # Skip disambiguation pages
+        if data.get("type") == "disambiguation":
+            return None
+
         extract = data.get("extract", "").strip()
         if not extract:
-            return f"I found a page for '{topic}' but it had no summary."
+            return None
 
-        # Limit to first 2 sentences for a concise spoken response
+        # Return first 2 sentences
         sentences = re.split(r"(?<=[.!?])\s+", extract)
-        summary = " ".join(sentences[:2])
-        return summary
+        return " ".join(sentences[:2])
 
     except requests.RequestException:
-        return f"I couldn't connect to Wikipedia right now."
+        return None
+
+
+def _search_wikipedia(topic: str) -> str | None:
+    """Use Wikipedia's search API to find the best matching page title."""
+    params = {
+        "action": "query",
+        "list": "search",
+        "srsearch": topic,
+        "format": "json",
+        "srlimit": 1,
+    }
+    try:
+        response = requests.get(
+            WIKIPEDIA_SEARCH_URL,
+            params=params,
+            timeout=10,
+            headers={"User-Agent": "VoiceAssistant/1.0"},
+        )
+        if response.status_code != 200:
+            return None
+
+        results = response.json().get("query", {}).get("search", [])
+        if results:
+            return results[0]["title"]
+        return None
+
+    except requests.RequestException:
+        return None
 
 
 def _extract_topic(query: str) -> str:
@@ -54,6 +101,5 @@ def _extract_topic(query: str) -> str:
     lower = text.lower()
     for prefix in prefixes:
         if lower.startswith(prefix):
-            topic = text[len(prefix):].strip()
-            return topic
+            return text[len(prefix):].strip()
     return text
