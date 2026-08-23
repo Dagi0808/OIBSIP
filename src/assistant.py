@@ -50,7 +50,7 @@ def get_response(text: str, speak_fn=None) -> str:
         return schedule_reminder(minutes, task, _speak)
 
     if intent == "email":
-        return check_email()
+        return "EMAIL_SETUP_NEEDED"
 
     if intent == "custom":
         task = info.get("task") or "your custom command"

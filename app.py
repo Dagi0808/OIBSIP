@@ -467,7 +467,7 @@ HTML = """
       margin-top: 8px;
     }
 
-    /* Typing indicator */
+    /* Responsive */
     .typing-indicator {
       display: flex;
       gap: 4px;
@@ -491,7 +491,168 @@ HTML = """
       40% { transform: translateY(-6px); }
     }
 
-    /* Responsive */
+    /* ── Email setup modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .modal-icon {
+      font-size: 28px;
+    }
+
+    .modal h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(16, 163, 127, 0.1);
+      border: 1px solid rgba(16, 163, 127, 0.25);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .security-badge .shield {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .security-badge strong {
+      display: block;
+      color: #10a37f;
+      margin-bottom: 2px;
+      font-size: 0.82rem;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.12);
+    }
+
+    .form-group input::placeholder { color: var(--text-muted); }
+
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    .form-hint a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .form-hint a:hover { text-decoration: underline; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-primary {
+      flex: 1;
+      padding: 10px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-secondary {
+      padding: 10px 16px;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-secondary:hover { background: var(--chip-hover); color: var(--text); }
+
+    .error-msg {
+      background: rgba(230, 57, 70, 0.12);
+      border: 1px solid rgba(230, 57, 70, 0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: #e63946;
+      margin-bottom: 16px;
+    }
     @media (max-width: 640px) {
       .sidebar { display: none; }
       .suggestions { grid-template-columns: 1fr; }
@@ -748,6 +909,66 @@ HTML = """
     }
   </script>
 
+  <!-- Email setup modal -->
+  {% if show_email_modal %}
+  <div class="modal-overlay" id="email-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icon">📧</div>
+        <h3>Connect your Gmail</h3>
+      </div>
+      <p>To read your emails, enter your Gmail address and a Gmail App Password below.</p>
+
+      <div class="security-badge">
+        <span class="shield">🔒</span>
+        <div>
+          <strong>Your credentials are safe</strong>
+          Your email and password are stored only in your browser session — never saved to disk, never sent anywhere except directly to Gmail's servers. They are cleared when you close the tab or start a new chat.
+        </div>
+      </div>
+
+      {% if email_error %}
+      <div class="error-msg">
+        {% if email_error == 'auth' %}
+          ❌ Login failed. Check your email address and App Password.
+        {% elif email_error == 'connect' %}
+          ❌ Could not connect to Gmail. Check your internet connection.
+        {% else %}
+          ❌ Something went wrong. Please try again.
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <form method="POST" id="email-form">
+        <input type="hidden" name="email_setup" value="1">
+        <div class="form-group">
+          <label for="user_email">Gmail address</label>
+          <input type="email" id="user_email" name="user_email" placeholder="you@gmail.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="user_app_password">Gmail App Password</label>
+          <input type="password" id="user_app_password" name="user_app_password" placeholder="xxxx xxxx xxxx xxxx" required autocomplete="off">
+          <div class="form-hint">
+            This is a 16-character App Password, not your Gmail login password.
+            <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">Get one here →</a>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="dismissModal()">Cancel</button>
+          <button type="submit" class="btn-primary">🔐 Connect & Read Inbox</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+    function dismissModal() {
+      const modal = document.getElementById('email-modal');
+      if (modal) modal.style.display = 'none';
+    }
+  </script>
+
 </body>
 </html>
 """
@@ -755,31 +976,92 @@ HTML = """
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    from src.email_service import read_inbox
+    from datetime import datetime
+
     if "history" not in session:
         session["history"] = []
 
+    show_email_modal = False
+    email_error = None
+
     if request.method == "POST":
+
         # Clear chat
         if request.form.get("new_chat"):
             session["history"] = []
+            session.pop("user_email", None)
+            session.pop("user_app_password", None)
             session.modified = True
-            return render_template_string(HTML, history=[])
-
-        command = request.form.get("command", "").strip()
-        if command:
-            from datetime import datetime
+            return render_template_string(
+                HTML, history=[], show_email_modal=False, email_error=None
+            )
+        if request.form.get("email_setup"):
+            user_email = request.form.get("user_email", "").strip()
+            user_pw = request.form.get("user_app_password", "").strip()
             now = datetime.now().strftime("%I:%M %p")
 
+            result = read_inbox(user_email, user_pw)
+
+            if result == "EMAIL_AUTH_FAILED":
+                show_email_modal = True
+                email_error = "auth"
+            elif result == "EMAIL_CONNECT_FAILED":
+                show_email_modal = True
+                email_error = "connect"
+            else:
+                # Credentials work — save in session
+                session["user_email"] = user_email
+                session["user_app_password"] = user_pw
+                history = session["history"]
+                history.append({"role": "user", "text": "check my email", "time": now})
+                history.append({"role": "assistant", "text": result, "time": now})
+                session["history"] = history[-40:]
+                session.modified = True
+
+            return render_template_string(
+                HTML,
+                history=session.get("history", []),
+                show_email_modal=show_email_modal,
+                email_error=email_error,
+            )
+
+        # Normal command
+        command = request.form.get("command", "").strip()
+        if command:
+            now = datetime.now().strftime("%I:%M %p")
             history = session["history"]
             history.append({"role": "user", "text": command, "time": now})
 
             response = get_response(command)
-            history.append({"role": "assistant", "text": response, "time": now})
 
-            session["history"] = history[-40:]  # keep last 20 exchanges
+            # Email intent — check if we already have session credentials
+            if response == "EMAIL_SETUP_NEEDED":
+                if session.get("user_email") and session.get("user_app_password"):
+                    response = read_inbox(
+                        session["user_email"], session["user_app_password"]
+                    )
+                    if response == "EMAIL_AUTH_FAILED":
+                        session.pop("user_email", None)
+                        session.pop("user_app_password", None)
+                        response = "Your saved email credentials expired. Please reconnect."
+                        show_email_modal = True
+                    elif response == "EMAIL_CONNECT_FAILED":
+                        response = "I couldn't connect to Gmail right now. Check your internet."
+                else:
+                    show_email_modal = True
+                    response = "I need your Gmail credentials to check your inbox."
+
+            history.append({"role": "assistant", "text": response, "time": now})
+            session["history"] = history[-40:]
             session.modified = True
 
-    return render_template_string(HTML, history=session.get("history", []))
+    return render_template_string(
+        HTML,
+        history=session.get("history", []),
+        show_email_modal=show_email_modal,
+        email_error=email_error,
+    )
 
 
 if __name__ == "__main__":
