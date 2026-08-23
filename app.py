@@ -855,7 +855,7 @@ HTML = """
     textarea.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        document.getElementById('chat-form').submit();
+        submitChat();
       }
     });
 
@@ -868,23 +868,95 @@ HTML = """
     }
 
     // ── Scroll to bottom ──
+    const messagesDiv = document.getElementById('messages');
     function scrollToBottom() {
-      const messages = document.getElementById('messages');
-      messages.scrollTop = messages.scrollHeight;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
     scrollToBottom();
 
-    // ── Clear chat ──
+    // ── Append a chat bubble ──
+    function appendMessage(role, text, time) {
+      const welcome = document.getElementById('welcome-screen');
+      if (welcome) welcome.remove();
+
+      const row = document.createElement('div');
+      row.className = 'message-row ' + role;
+      const avatarText = role === 'user' ? 'D' : '🤖';
+      row.innerHTML =
+        '<div class="avatar ' + role + '-avatar">' + avatarText + '</div>' +
+        '<div>' +
+        '<div class="bubble">' + text + '</div>' +
+        '<div class="message-meta">' + time + '</div>' +
+        '</div>';
+      messagesDiv.appendChild(row);
+      scrollToBottom();
+    }
+
+    // ── AJAX chat submit ──
+    const sendBtn = document.getElementById('send-btn');
+    const statusText = document.getElementById('status-text');
+
+    function submitChat() {
+      const command = textarea.value.trim();
+      if (!command) return;
+
+      textarea.value = '';
+      textarea.style.height = 'auto';
+      sendBtn.disabled = true;
+      statusText.textContent = 'Thinking...';
+
+      const now = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+      appendMessage('user', command, now);
+
+      fetch('/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({command: command}),
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.show_email_modal) { showEmailModal(); }
+        appendMessage('assistant', data.assistant.text, data.assistant.time);
+        speakResponse(data.assistant.text);
+        statusText.textContent = 'Press Enter to send · Click 🎙️ to speak';
+        sendBtn.disabled = false;
+        textarea.focus();
+      })
+      .catch(function() {
+        appendMessage('assistant', 'Something went wrong. Please try again.', now);
+        statusText.textContent = 'Error. Try again.';
+        sendBtn.disabled = false;
+      });
+    }
+
+    document.getElementById('chat-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      submitChat();
+    });
+
+    // ── Clear chat via AJAX ──
     function clearChat() {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'new_chat';
-      input.value = '1';
-      form.appendChild(input);
-      document.body.appendChild(form);
-      form.submit();
+      fetch('/clear', {method: 'POST'}).then(function() {
+        messagesDiv.innerHTML =
+          '<div class="welcome" id="welcome-screen">' +
+          '<div class="welcome-icon">🤖</div>' +
+          '<h2>How can I help you?</h2>' +
+          '<p>Ask me about the weather, set a reminder, search the web, or learn something new.</p>' +
+          '<div class="suggestions">' +
+          '<div class="suggestion-card" onclick="fillInput(\'what is the weather in Addis Ababa\')">' +
+          '<div class="suggestion-title">🌤️ Weather</div>' +
+          '<div class="suggestion-sub">What\'s the weather in Addis Ababa?</div></div>' +
+          '<div class="suggestion-card" onclick="fillInput(\'remind me in 5 minutes to drink water\')">' +
+          '<div class="suggestion-title">⏰ Reminder</div>' +
+          '<div class="suggestion-sub">Remind me in 5 minutes to drink water</div></div>' +
+          '<div class="suggestion-card" onclick="fillInput(\'who is Albert Einstein\')">' +
+          '<div class="suggestion-title">🧠 Knowledge</div>' +
+          '<div class="suggestion-sub">Who is Albert Einstein?</div></div>' +
+          '<div class="suggestion-card" onclick="fillInput(\'search for Python tutorials\')">' +
+          '<div class="suggestion-title">🔍 Search</div>' +
+          '<div class="suggestion-sub">Search for Python tutorials</div></div>' +
+          '</div></div>';
+      });
     }
 
     // ── TTS toggle ──
@@ -902,19 +974,8 @@ HTML = """
       window.speechSynthesis.speak(utterance);
     }
 
-    // Speak the latest assistant response on page load
-    {% if history %}
-      {% set last = history[-1] %}
-      {% if last.role == 'assistant' %}
-        window.addEventListener('load', function() {
-          speakResponse({{ last.text | tojson }});
-        });
-      {% endif %}
-    {% endif %}
-
     // ── Speech recognition ──
     const micBtn = document.getElementById('mic-btn');
-    const statusText = document.getElementById('status-text');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (SpeechRecognition) {
@@ -930,7 +991,7 @@ HTML = """
         const transcript = event.results[0][0].transcript;
         textarea.value = transcript;
         statusText.textContent = 'Command captured. Sending...';
-        document.getElementById('chat-form').submit();
+        submitChat();
       };
 
       recognition.onend = function () {
@@ -949,8 +1010,61 @@ HTML = """
       });
     } else {
       micBtn.disabled = true;
-      micBtn.title = 'Speech not supported in this browser';
       statusText.textContent = 'Speech recognition not available. Use Chrome or Edge.';
+    }
+
+    // ── Email modal (AJAX) ──
+    function showEmailModal() {
+      const modal = document.getElementById('email-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function dismissModal() {
+      const modal = document.getElementById('email-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    const emailForm = document.getElementById('email-form');
+    if (emailForm) {
+      emailForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('user_email').value.trim();
+        const password = document.getElementById('user_app_password').value.trim();
+        const submitBtn = emailForm.querySelector('button[type="submit"]');
+        const errorDiv = document.getElementById('email-error-msg');
+
+        submitBtn.textContent = '⏳ Connecting...';
+        submitBtn.disabled = true;
+        if (errorDiv) errorDiv.style.display = 'none';
+
+        fetch('/email-setup', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email: email, password: password}),
+        })
+        .then(function(res) {
+          return res.json().then(function(data) { return {ok: res.ok, data: data}; });
+        })
+        .then(function(result) {
+          if (!result.ok) {
+            const msg = result.data.error === 'auth'
+              ? '❌ Login failed. Check your email and App Password.'
+              : '❌ Could not connect to Gmail. Check your internet.';
+            if (errorDiv) { errorDiv.textContent = msg; errorDiv.style.display = 'block'; }
+            submitBtn.textContent = '🔐 Connect & Read Inbox';
+            submitBtn.disabled = false;
+            return;
+          }
+          dismissModal();
+          appendMessage('assistant', result.data.assistant.text, result.data.assistant.time);
+          speakResponse(result.data.assistant.text);
+        })
+        .catch(function() {
+          if (errorDiv) { errorDiv.textContent = '❌ Network error. Try again.'; errorDiv.style.display = 'block'; }
+          submitBtn.textContent = '🔐 Connect & Read Inbox';
+          submitBtn.disabled = false;
+        });
+      });
     }
   </script>
 
@@ -973,7 +1087,7 @@ HTML = """
       </div>
 
       {% if email_error %}
-      <div class="error-msg">
+      <div class="error-msg" id="email-error-msg">
         {% if email_error == 'auth' %}
           ❌ Login failed. Check your email address and App Password.
         {% elif email_error == 'connect' %}
@@ -982,6 +1096,8 @@ HTML = """
           ❌ Something went wrong. Please try again.
         {% endif %}
       </div>
+      {% else %}
+      <div class="error-msg" id="email-error-msg" style="display:none"></div>
       {% endif %}
 
       <form method="POST" id="email-form">
@@ -1007,99 +1123,111 @@ HTML = """
   </div>
   {% endif %}
 
-  <script>
-    function dismissModal() {
-      const modal = document.getElementById('email-modal');
-      if (modal) modal.style.display = 'none';
-    }
-  </script>
 
 </body>
 </html>
 """
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    from src.email_service import read_inbox
-    from datetime import datetime
-
-    if "history" not in session:
-        session["history"] = []
-
     show_email_modal = session.pop("show_email_modal", False)
     email_error = session.pop("email_error", None)
-
-    if request.method == "POST":
-
-        # Clear chat
-        if request.form.get("new_chat"):
-            session["history"] = []
-            session.pop("user_email", None)
-            session.pop("user_app_password", None)
-            session.modified = True
-            return redirect(url_for("index"))
-
-        # Email setup form
-        if request.form.get("email_setup"):
-            user_email = request.form.get("user_email", "").strip()
-            user_pw = request.form.get("user_app_password", "").strip()
-            now = datetime.now().strftime("%I:%M %p")
-
-            result = read_inbox(user_email, user_pw)
-
-            if result == "EMAIL_AUTH_FAILED":
-                session["show_email_modal"] = True
-                session["email_error"] = "auth"
-            elif result == "EMAIL_CONNECT_FAILED":
-                session["show_email_modal"] = True
-                session["email_error"] = "connect"
-            else:
-                session["user_email"] = user_email
-                session["user_app_password"] = user_pw
-                history = session.get("history", [])
-                history.append({"role": "user", "text": "check my email", "time": now})
-                history.append({"role": "assistant", "text": result, "time": now})
-                session["history"] = history[-40:]
-
-            session.modified = True
-            return redirect(url_for("index"))
-
-        # Normal command
-        command = request.form.get("command", "").strip()
-        if command:
-            now = datetime.now().strftime("%I:%M %p")
-            history = session.get("history", [])
-            history.append({"role": "user", "text": command, "time": now})
-
-            response = get_response(command)
-
-            if response == "EMAIL_SETUP_NEEDED":
-                if session.get("user_email") and session.get("user_app_password"):
-                    response = read_inbox(session["user_email"], session["user_app_password"])
-                    if response == "EMAIL_AUTH_FAILED":
-                        session.pop("user_email", None)
-                        session.pop("user_app_password", None)
-                        response = "Your saved email credentials expired. Please reconnect."
-                        session["show_email_modal"] = True
-                    elif response == "EMAIL_CONNECT_FAILED":
-                        response = "I couldn't connect to Gmail right now. Check your internet."
-                else:
-                    session["show_email_modal"] = True
-                    response = "I need your Gmail credentials to check your inbox."
-
-            history.append({"role": "assistant", "text": response, "time": now})
-            session["history"] = history[-40:]
-            session.modified = True
-
-        return redirect(url_for("index"))
-
     return render_template_string(
         HTML,
         history=session.get("history", []),
         show_email_modal=show_email_modal,
         email_error=email_error,
     )
+
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    from src.email_service import read_inbox
+    from datetime import datetime
+    from flask import jsonify
+
+    data = request.get_json(silent=True) or {}
+    command = (data.get("command") or "").strip()
+    now = datetime.now().strftime("%I:%M %p")
+
+    if not command:
+        return jsonify({"error": "empty"}), 400
+
+    if "history" not in session:
+        session["history"] = []
+
+    history = session["history"]
+    history.append({"role": "user", "text": command, "time": now})
+
+    response = get_response(command)
+
+    show_email_modal = False
+    if response == "EMAIL_SETUP_NEEDED":
+        if session.get("user_email") and session.get("user_app_password"):
+            response = read_inbox(session["user_email"], session["user_app_password"])
+            if response == "EMAIL_AUTH_FAILED":
+                session.pop("user_email", None)
+                session.pop("user_app_password", None)
+                response = "Your saved email credentials expired. Please reconnect."
+                show_email_modal = True
+            elif response == "EMAIL_CONNECT_FAILED":
+                response = "I couldn't connect to Gmail right now. Check your internet."
+        else:
+            show_email_modal = True
+            response = "I need your Gmail credentials to check your inbox."
+
+    history.append({"role": "assistant", "text": response, "time": now})
+    session["history"] = history[-40:]
+    session.modified = True
+
+    return jsonify({
+        "user": {"text": command, "time": now},
+        "assistant": {"text": response, "time": now},
+        "show_email_modal": show_email_modal,
+    })
+
+
+@app.route("/email-setup", methods=["POST"])
+def email_setup():
+    from src.email_service import read_inbox
+    from datetime import datetime
+    from flask import jsonify
+
+    data = request.get_json(silent=True) or {}
+    user_email = (data.get("email") or "").strip()
+    user_pw = (data.get("password") or "").strip()
+    now = datetime.now().strftime("%I:%M %p")
+
+    result = read_inbox(user_email, user_pw)
+
+    if result == "EMAIL_AUTH_FAILED":
+        return jsonify({"error": "auth"}), 401
+    if result == "EMAIL_CONNECT_FAILED":
+        return jsonify({"error": "connect"}), 503
+
+    session["user_email"] = user_email
+    session["user_app_password"] = user_pw
+    history = session.get("history", [])
+    history.append({"role": "user", "text": "check my email", "time": now})
+    history.append({"role": "assistant", "text": result, "time": now})
+    session["history"] = history[-40:]
+    session.modified = True
+
+    return jsonify({
+        "user": {"text": "check my email", "time": now},
+        "assistant": {"text": result, "time": now},
+    })
+
+
+@app.route("/clear", methods=["POST"])
+def clear():
+    from flask import jsonify
+    session["history"] = []
+    session.pop("user_email", None)
+    session.pop("user_app_password", None)
+    session.modified = True
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":
