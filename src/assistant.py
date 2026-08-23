@@ -7,6 +7,7 @@ try:
     )
     from src.email_service import check_email
     from src.intents import detect_intent, extract_info
+    from src.knowledge import get_knowledge
     from src.reminders import schedule_reminder
 except ModuleNotFoundError:
     from commands import (
@@ -17,6 +18,7 @@ except ModuleNotFoundError:
     )
     from email_service import check_email
     from intents import detect_intent, extract_info
+    from knowledge import get_knowledge
     from reminders import schedule_reminder
 
 
@@ -57,6 +59,9 @@ def get_response(text: str, speak_fn=None) -> str:
     if intent == "search":
         search_query = info.get("query") or query
         return get_search_response(search_query)
+
+    if intent == "knowledge":
+        return get_knowledge(query)
 
     return "I heard you, but I need a better command."
 

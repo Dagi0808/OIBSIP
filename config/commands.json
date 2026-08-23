@@ -39,6 +39,11 @@
       "name": "custom",
       "patterns": ["open", "launch", "start", "run"],
       "description": "Process custom commands"
+    },
+    {
+      "name": "knowledge",
+      "patterns": ["who is", "who was", "what is", "what are", "tell me about", "explain", "describe"],
+      "description": "Look up general knowledge from Wikipedia"
     }
   ]
 }

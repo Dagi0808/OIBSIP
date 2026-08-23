@@ -13,6 +13,8 @@ def _load_intent_patterns():
         "reminder": ["remind"],
         "email": ["email"],
         "custom": ["open", "launch", "start", "run"],
+        "knowledge": ["who is", "who was", "what is", "what are", "what was",
+                      "tell me about", "explain", "describe"],
     }
 
     data = load_commands()
@@ -47,6 +49,8 @@ def detect_intent(text: str) -> str:
         return "reminder"
     if any(term in query for term in INTENT_PATTERNS["email"]):
         return "email"
+    if any(term in query for term in INTENT_PATTERNS["knowledge"]):
+        return "knowledge"
     if any(term in query for term in INTENT_PATTERNS["custom"]):
         return "custom"
     if any(term in query for term in INTENT_PATTERNS["search"]):
