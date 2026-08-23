@@ -33,6 +33,25 @@ HTML = """
       --scrollbar: #3e3e42;
     }
 
+    /* Light theme */
+    :root.light {
+      --bg: #f7f7f8;
+      --sidebar-bg: #ffffff;
+      --chat-bg: #ffffff;
+      --input-bg: #f4f4f5;
+      --border: #e5e5e7;
+      --primary: #10a37f;
+      --primary-hover: #0d8c6d;
+      --user-bubble: #f0f0f1;
+      --assistant-bubble: transparent;
+      --text: #1a1a1b;
+      --text-muted: #6e6e80;
+      --chip-bg: #f4f4f5;
+      --chip-border: #e5e5e7;
+      --chip-hover: #ebebec;
+      --scrollbar: #d0d0d5;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
@@ -515,6 +534,7 @@ HTML = """
     <div class="chat-header">
       <span class="chat-title">Voice Assistant</span>
       <div class="header-actions">
+        <button class="icon-btn" title="Toggle theme" id="theme-toggle" onclick="toggleTheme()">🌙</button>
         <button class="icon-btn" title="Clear chat" onclick="clearChat()">🗑️</button>
         <button class="icon-btn" id="tts-toggle" title="Toggle voice responses" onclick="toggleTTS()">🔊</button>
       </div>
@@ -592,6 +612,32 @@ HTML = """
   </main>
 
   <script>
+    // ── Theme toggle ──
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        root.classList.add('light');
+        themeBtn.textContent = '☀️';
+        themeBtn.title = 'Switch to dark mode';
+      } else {
+        root.classList.remove('light');
+        themeBtn.textContent = '🌙';
+        themeBtn.title = 'Switch to light mode';
+      }
+    }
+
+    function toggleTheme() {
+      const current = root.classList.contains('light') ? 'light' : 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('va-theme', next);
+      applyTheme(next);
+    }
+
+    // Apply saved theme on load
+    applyTheme(localStorage.getItem('va-theme') || 'dark');
+
     // ── Auto-resize textarea ──
     const textarea = document.getElementById('command');
     textarea.addEventListener('input', function () {
