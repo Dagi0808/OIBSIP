@@ -9,6 +9,7 @@ except ModuleNotFoundError:
 def run_assistant():
     print("Voice assistant is listening. Say 'hello' or ask for the time.")
     speak("Hello! How can I help you?")
+    history = []
 
     while True:
         try:
@@ -18,7 +19,10 @@ def run_assistant():
                 continue
 
             print(f"You said: {text}")
-            reply = get_response(text, speak_fn=speak)
+            reply = get_response(text, speak_fn=speak, history=history)
+            history.append({"role": "user", "text": text})
+            history.append({"role": "assistant", "text": reply})
+            history = history[-10:]  # keep last 5 exchanges
             print(f"Assistant: {reply}")
             speak(reply)
 

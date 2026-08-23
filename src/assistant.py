@@ -36,10 +36,19 @@ except ModuleNotFoundError:
     from reminders import schedule_reminder
 
 
-def get_response(text: str, speak_fn=None) -> str:
+def get_response(text: str, speak_fn=None, history: list | None = None) -> str:
     query = (text or "").strip()
     if not query:
         return get_response_text("empty", "en")
+
+    # Resolve follow-up references using conversation history
+    try:
+        from src.context import resolve_query
+    except ModuleNotFoundError:
+        from context import resolve_query
+
+    if history:
+        query = resolve_query(query, history)
 
     intent, lang = detect_intent(query)
     info = extract_info(query, lang)

@@ -1057,7 +1057,7 @@ def index():
             history = session.get("history", [])
             history.append({"role": "user", "text": command, "time": now})
 
-            response = get_response(command)
+            response = get_response(command, history=history)
 
             if response == "EMAIL_SETUP_NEEDED":
                 if session.get("user_email") and session.get("user_app_password"):
