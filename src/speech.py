@@ -1,10 +1,16 @@
+import os
+
 import speech_recognition as sr
 import pyttsx3
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
 MIC_DEVICE_INDEX = 0
+LANG = os.getenv("ASSISTANT_LANG", "en-US")
 
 
 def listen_microphone():
@@ -16,7 +22,7 @@ def listen_microphone():
         return ""
 
     try:
-        return recognizer.recognize_google(audio)
+        return recognizer.recognize_google(audio, language=LANG)
     except (sr.UnknownValueError, sr.RequestError):
         return ""
 

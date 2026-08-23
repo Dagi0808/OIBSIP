@@ -193,6 +193,22 @@ HTML = """
 
     .icon-btn:hover { background: var(--chip-hover); color: var(--text); }
 
+    .lang-select {
+      background: var(--chip-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.8rem;
+      padding: 5px 8px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    .lang-select:focus { border-color: var(--primary); }
+    .lang-select option { background: var(--sidebar-bg); }
+
     /* Messages */
     .messages {
       flex: 1;
@@ -695,6 +711,16 @@ HTML = """
     <div class="chat-header">
       <span class="chat-title">Voice Assistant</span>
       <div class="header-actions">
+        <select class="lang-select" id="lang-select" title="Speech language" onchange="saveLanguage(this.value)">
+          <option value="en-US">🇺🇸 English (US)</option>
+          <option value="en-GB">🇬🇧 English (UK)</option>
+          <option value="am-ET">🇪🇹 Amharic</option>
+          <option value="fr-FR">🇫🇷 French</option>
+          <option value="ar-SA">🇸🇦 Arabic</option>
+          <option value="es-ES">🇪🇸 Spanish</option>
+          <option value="de-DE">🇩🇪 German</option>
+          <option value="zh-CN">🇨🇳 Chinese</option>
+        </select>
         <button class="icon-btn" title="Toggle theme" id="theme-toggle" onclick="toggleTheme()">🌙</button>
         <button class="icon-btn" title="Clear chat" onclick="clearChat()">🗑️</button>
         <button class="icon-btn" id="tts-toggle" title="Toggle voice responses" onclick="toggleTTS()">🔊</button>
@@ -773,6 +799,25 @@ HTML = """
   </main>
 
   <script>
+    // ── Language selector ──
+    const langSelect = document.getElementById('lang-select');
+
+    function saveLanguage(lang) {
+      localStorage.setItem('va-lang', lang);
+    }
+
+    function loadLanguage() {
+      const saved = localStorage.getItem('va-lang') || 'en-US';
+      langSelect.value = saved;
+      return saved;
+    }
+
+    let currentLang = loadLanguage();
+    langSelect.addEventListener('change', function() {
+      currentLang = this.value;
+      saveLanguage(currentLang);
+    });
+
     // ── Theme toggle ──
     const root = document.documentElement;
     const themeBtn = document.getElementById('theme-toggle');
@@ -852,7 +897,7 @@ HTML = """
     function speakResponse(text) {
       if (!ttsEnabled || !('speechSynthesis' in window)) return;
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
+      utterance.lang = currentLang;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     }
@@ -874,7 +919,6 @@ HTML = """
 
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
       recognition.continuous = false;
 
       recognition.onstart = function () {
@@ -900,6 +944,7 @@ HTML = """
       };
 
       micBtn.addEventListener('click', function () {
+        recognition.lang = currentLang;
         recognition.start();
       });
     } else {
