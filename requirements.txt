@@ -5,3 +5,5 @@ python-dotenv
 PyAudio
 flask
 pytest
+pystray
+Pillow
