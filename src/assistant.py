@@ -44,9 +44,8 @@ def get_response(text: str, speak_fn=None) -> str:
     if intent == "reminder":
         minutes = info.get("minutes", 5)
         task = info.get("task") or "your task"
-        # Use a no-op speak function if none provided (e.g. web UI)
         _speak = speak_fn if callable(speak_fn) else lambda t: None
-        return schedule_reminder(minutes, task, _speak, notify_email=True)
+        return schedule_reminder(minutes, task, _speak)
 
     if intent == "email":
         return check_email()
