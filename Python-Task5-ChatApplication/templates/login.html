@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Login — ChatApp{% endblock %}
+{% block head %}
+<style>
+  .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center;
+               background: linear-gradient(135deg, #0f0f10, #1a1a2e); }
+  .auth-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+               padding: 40px 36px; width: 100%; max-width: 420px;
+               box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+  .auth-logo { text-align: center; font-size: 2.4rem; margin-bottom: 6px; }
+  .auth-title { text-align: center; font-size: 1.4rem; font-weight: 700;
+                color: var(--text); margin-bottom: 4px; }
+  .auth-sub { text-align: center; font-size: 0.875rem; color: var(--muted); margin-bottom: 28px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 0.78rem; font-weight: 600;
+                      color: var(--muted); text-transform: uppercase;
+                      letter-spacing: 0.05em; margin-bottom: 6px; }
+  .form-group input { width: 100%; padding: 10px 14px; background: var(--input-bg);
+                      border: 1px solid var(--border); border-radius: 4px;
+                      color: var(--text); font-size: 1rem; outline: none; }
+  .form-group input:focus { border-color: var(--primary); }
+  .btn { width: 100%; padding: 12px; background: var(--primary); color: white;
+         border: none; border-radius: 4px; font-size: 1rem; font-weight: 600;
+         cursor: pointer; margin-top: 8px; transition: background 0.15s; }
+  .btn:hover { background: var(--primary-hover); }
+  .auth-footer { text-align: center; margin-top: 20px; font-size: 0.875rem; color: var(--muted); }
+  .error { background: rgba(237,66,69,0.15); border: 1px solid rgba(237,66,69,0.4);
+           border-radius: 6px; padding: 10px 14px; color: var(--red);
+           font-size: 0.875rem; margin-bottom: 16px; }
+</style>
+{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">💬</div>
+    <div class="auth-title">Welcome back!</div>
+    <div class="auth-sub">Sign in to continue chatting.</div>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="POST">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username"
+               autocomplete="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password"
+               autocomplete="current-password" required>
+      </div>
+      <button class="btn" type="submit">Log In</button>
+    </form>
+    <div class="auth-footer">
+      Don't have an account? <a href="{{ url_for('register') }}">Register</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
