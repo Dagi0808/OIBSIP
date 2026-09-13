@@ -13,9 +13,9 @@ Each task lives in its own folder and development branch.
 
 ```
 OIBSIP/
-├── Python-Task1-VoiceAssistant/    ← Task 1 · Advanced Voice Assistant
-├── Python-Task4-WeatherApp/        ← Task 4 · Advanced Weather App
-└── Python-Task5-ChatApplication/   ← Task 5 · Advanced Chat Application
+├── DagmawitDagne_Task1/    ← Task 1 · Advanced Voice Assistant
+├── DagmawitDagne_Task4/    ← Task 4 · Advanced Weather App
+└── DagmawitDagne_Task5/    ← Task 5 · Advanced Chat Application
 ```
 
 | Branch | Task |
@@ -50,7 +50,7 @@ A Python voice assistant with a Flask web UI and CLI microphone mode. Supports E
 
 ### Run
 ```bash
-cd Python-Task1-VoiceAssistant
+cd DagmawitDagne_Task1
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # add your OpenWeatherMap API key
@@ -82,7 +82,7 @@ A Python desktop weather application built with tkinter. Fetches real-time weath
 
 ### Run
 ```bash
-cd Python-Task4-WeatherApp
+cd DagmawitDagne_Task4
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # add your OpenWeatherMap API key
@@ -114,7 +114,7 @@ A real-time web chat application with Discord-inspired UI. Built with Flask-Sock
 
 ### Run
 ```bash
-cd Python-Task5-ChatApplication
+cd DagmawitDagne_Task5
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env   # set SECRET_KEY
