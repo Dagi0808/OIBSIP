@@ -113,6 +113,8 @@ class WeatherApp(tk.Tk):
             insertbackground=c["text"],
             relief="flat", bd=0,
         )
+        self._city_entry.insert(0, "City name or ZIP code (e.g. 10001,US)")
+        self._city_entry.bind("<FocusIn>", lambda e: self._city_entry.delete(0, "end") if self._city_var.get() == "City name or ZIP code (e.g. 10001,US)" else None)
         self._city_entry.pack(side="left", fill="x", expand=True,
                               ipady=10, padx=(0, 10))
         self._city_entry.bind("<Return>", lambda e: self._search())
